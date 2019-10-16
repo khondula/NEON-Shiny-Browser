@@ -18,7 +18,9 @@ function(input, output, session) {
   ####INTERACTIVE MAP TAB####
   
   # Reactive value for layer control
-  legend <- reactiveValues(group = c("Field Sites", "Domains", "Flight Boxes", "Sub Locations"))
+  legend <- reactiveValues(group = c("Field Sites", "Domains", 
+                                     "Flight Boxes", "Sub Locations",
+                                     "WBD Transparent"))
   
   #### Map ####
   output$map <- renderLeaflet({
@@ -33,6 +35,14 @@ function(input, output, session) {
                          group = "Topo") %>%
         addProviderTiles(provider = providers$Esri.WorldImagery,
                          group = "Satellite") %>%
+        addWMSTiles("https://smallscale.nationalmap.gov/arcgis/services/LandCover/MapServer/WMSServer", 
+                    layers = "1",
+                    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+                    group = "NLCD") %>%
+        addWMSTiles("https://hydro.nationalmap.gov/arcgis/services/wbd/MapServer/WMSServer", 
+                    layers = "7",
+                    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+                    group = "WBD Transparent") %>%
         # Add measuring tool
         addMeasure(position = "topleft",
                    primaryLengthUnit = "kilometers",
@@ -41,7 +51,8 @@ function(input, output, session) {
                    completedColor = "#7D4479"
         ) %>%
         # Add layer control
-        addLayersControl(baseGroups = c("Basic", "Satellite", "Nat geo", "Topo"),
+        addLayersControl(baseGroups = c("Basic", "Satellite", "Nat geo", "Topo",
+                                        "NLCD"),
                          overlayGroups = legend$group,
                          options = layersControlOptions(collapsed = FALSE)
         ) %>%
@@ -49,7 +60,10 @@ function(input, output, session) {
         # Add option for fullscreen
         leaflet.extras::addFullscreenControl(pseudoFullscreen = TRUE)
     )
-    map %>% setView(lng = -98.5795, lat = 39.8283, zoom = 2.5) %>% hideGroup("Flight Boxes")
+    map %>% setView(lng = -98.5795, lat = 39.8283, zoom = 2.5) %>% 
+      hideGroup("Flight Boxes") %>%
+      hideGroup("NLCD") %>%
+      hideGroup( "WBD Transparent")
   })
   #### — Filter Map Features ####
   #### —— Filtered Features ####
